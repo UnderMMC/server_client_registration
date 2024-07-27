@@ -27,8 +27,12 @@ func PersonalDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DataBaseRecording() {
-	connStr := "user=username dbname=mydb password=mysecretpassword host=localhost sslmode=disable"
+	connStr := "user=postgres dbname=postgres password=4125 host=localhost sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Ошибка при открытии базы данных: %v", err)
+	}
+	defer db.Close() // Закрываем базу данных в конце функции
 
 	// Проверяем соединение
 	err = db.Ping()
@@ -43,15 +47,15 @@ func DataBaseRecording() {
 	}
 
 	_, err = db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", "user1", "password1")
+	if err != nil {
+		log.Fatalf("Ошибка при вставке данных: %v", err)
+	}
 
-	/*database, _ := sql.Open("sqlite3", "./gopher.db")
-
-	statemant, _ := database.Prepare("CREATE TABLE IF NOT EXISTS registrdatadb (login TEXT PRIMARY KEY, password TEXT)")
-	statemant.Exec()*/
+	log.Println("Данные успешно вставлены в таблицу users")
 }
 
 func main() {
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/api/registr", PersonalDataHandler)
 	DataBaseRecording()
-	//http.HandleFunc("/api/registr", PersonalDataHandler)
+	http.ListenAndServe(":8080", nil)
 }
